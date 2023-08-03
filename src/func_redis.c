@@ -27,10 +27,14 @@
 	<depend>hiredis</depend>
  ***/
 
+//https://community.asterisk.org/t/externally-compiled-modules-must-declare-ast-module-self-sym/87121/4
+#define AST_MODULE_SELF_SYM __internal_my_module_self
+
 
 #include <asterisk.h>
 
-ASTERISK_FILE_VERSION("func_redis.c", "$Revision: 6 $")
+// following line required bu asterisk 13
+//ASTERISK_FILE_VERSION("func_redis.c", "$Revision: 6 $")
 
 #include <asterisk/module.h>
 #include <asterisk/channel.h>
@@ -56,7 +60,7 @@ struct sdshdr {
 };
 void sdsfree(sds s) {
     if (s == NULL) return;
-    free((char*)s - sizeof(struct sdshdr));
+    ast_free((char*)s - sizeof(struct sdshdr));
 }
 #endif
 
@@ -220,7 +224,7 @@ static int redis_connect(void * data)
     }
 
     memcpy(data, redis_context, sizeof(redisContext));
-    free(redis_context);
+    ast_free(redis_context);
     return 0;
 }
 
@@ -239,32 +243,32 @@ static void redis_disconnect(void *data){
             redis_context->reader->fn->freeObject(redis_context->reader->reply);
         if (redis_context->reader->buf != NULL)
             sdsfree(redis_context->reader->buf);
-        free(redis_context->reader);
+        ast_free(redis_context->reader);
     } // = redisReaderFree(redis_context->reader);
 
 
 #if HIREDIS_MAJOR == 0 && HIREDIS_MINOR > 12
     if (redis_context->tcp.host)
-        free(redis_context->tcp.host);
+        ast_free(redis_context->tcp.host);
     if (redis_context->tcp.source_addr)
-        free(redis_context->tcp.source_addr);
+        ast_free(redis_context->tcp.source_addr);
     if (redis_context->timeout)
-        free(redis_context->timeout);
+        ast_free(redis_context->timeout);
 #endif
 
 #if HIREDIS_MAJOR == 0 && HIREDIS_MINOR == 13 && HIREDIS_PATCH == 0
     if (redis_context->unix.path){
-        free(redis_context->unix.path);
+        ast_free(redis_context->unix.path);
     }
 #endif
 
 #if HIREDIS_MAJOR == 0 && HIREDIS_MINOR == 13 && HIREDIS_PATCH > 0
     if (redis_context->unix_sock.path){
-        free(redis_context->unix_sock.path);
+        ast_free(redis_context->unix_sock.path);
     }
 #endif
 
-    free(redis_context);
+    ast_free(redis_context);
     return;
 }
 
@@ -274,23 +278,24 @@ static void redis_disconnect(void *data){
 static char * get_reply_value_as_str(redisReply *reply){
     char * value = NULL;
     if (reply != NULL){
+        size_t i;
         switch (reply->type){
             case REDIS_REPLY_NIL:
-                value = (char*)malloc(4);
+                value = (char*)ast_malloc(4);
                 snprintf(value, 4, "%s", "nil");
                 break;
             case REDIS_REPLY_INTEGER:
-                value = (char*)malloc(LONG_LONG_LEN_IN_STR);
+                value = (char*)ast_malloc(LONG_LONG_LEN_IN_STR);
                 snprintf(value, LONG_LONG_LEN_IN_STR, "%lld", reply->integer);
                 break;
             case REDIS_REPLY_STRING:
             case REDIS_REPLY_STATUS:
             case REDIS_REPLY_ERROR:
-                value = (char*)malloc((size_t)reply->len + 1);
+                value = (char*)ast_malloc((size_t)reply->len + 1);
                 snprintf(value, (size_t)(reply->len) + 1, "%s", reply->str);
                 break;
             case REDIS_REPLY_ARRAY:
-                for(size_t i = 0; i < reply->elements; ++i){
+                for(i = 0; i < reply->elements; ++i){
                     char * old_value = NULL;
                     redisReply * element = reply->element[i];
 
@@ -299,15 +304,15 @@ static char * get_reply_value_as_str(redisReply *reply){
 
                     if (i == 0){
                         size_t value_sz = element_sz + 1 ; // 1 = "\0"
-                        value = (char*)malloc(value_sz);
+                        value = (char*)ast_malloc(value_sz);
                         snprintf(value, value_sz, "%s", element_value);
                     }else{
                         old_value = value;
                         size_t old_value_sz = strlen(old_value);
                         size_t value_new_sz = old_value_sz + element_sz + 2; // 2  = comma + "\0"
-                        value = (char*)malloc(value_new_sz);
+                        value = (char*)ast_malloc(value_new_sz);
                         snprintf(value, value_new_sz, "%s,%s", old_value, element_value);
-                        free(old_value);
+                        ast_free(old_value);
                     }
                 }
                 break;
@@ -430,7 +435,7 @@ static int function_redis_command(struct ast_channel *chan, const char *cmd,
         char* reply_str = get_reply_value_as_str(reply);
         if (reply_str){
             strncpy(return_buffer, reply_str, rtn_buff_len);
-            free(reply_str);
+            ast_free(reply_str);
         }else{
             pbx_builtin_setvar_helper(chan, "REDIS_ERROR", "Error in reply as str");
         }
@@ -482,7 +487,7 @@ static int function_redis_read(struct ast_channel *chan, const char *cmd,
         if(value) {
             snprintf(return_buffer, rtn_buff_len, "%s", value);
             pbx_builtin_setvar_helper(chan, "REDIS_RESULT", value);
-            free(value);
+            ast_free(value);
         }
         freeReplyObject(reply);
     }
@@ -768,7 +773,7 @@ static char *handle_cli_redis_show(struct ast_cli_entry *e, int cmd, struct ast_
                     char *value = get_reply_value_as_str(get_reply);
                     if (value) {
                         ast_cli(args->fd, "%-50s: %-25s\n", reply->element[i]->str, value);
-                        free(value);
+                        ast_free(value);
                     }
                 }
             }
