@@ -46,10 +46,11 @@ but the performance is low compared to a asterisk module and the integration is 
     - [Ubuntu] apt-get install asterisk asterisk-dev
     - [Archlinux] pacman -S asterisk
 
+##### yum
+```yum install cmake asterisk-devel hiredis-devel  ```
         
 ## Instalation
 1. Install the dependencies
- * ```yum install cmake asterisk-devel hiredis-devel  ```
 2. ```mkdir build```
 3. ```cd build```
 4. ```cmake -DCMAKE_BUILD_TYPE=Release ..```
@@ -99,7 +100,7 @@ bgsave=false
 " > /etc/asterisk/func_redis.conf
 ```
 
-# load module in asterisk
+### load module in asterisk
 `asterisk>` ```module load func_redis.so``` 
 
 
