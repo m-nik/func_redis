@@ -49,6 +49,7 @@ but the performance is low compared to a asterisk module and the integration is 
         
 ## Instalation
 1. Install the dependencies
+ * ```yum install cmake asterisk-devel hiredis-devel  ```
 2. ```mkdir build```
 3. ```cd build```
 4. ```cmake -DCMAKE_BUILD_TYPE=Release ..```
@@ -69,7 +70,8 @@ run make samples it will copy this file to /etc/asterisk
 
 Here an example of the file :
 
-```
+```sh
+echo "
 [general]
 ; host of the redis server
 ; if not defined, use default of 127.0.0.1
@@ -94,7 +96,11 @@ timeout=3
 ; send a BGSAVE on connection close/module unload
 ; if not defined, use a default of false
 bgsave=false
+" > /etc/asterisk/func_redis.conf
 ```
+
+# load module in asterisk
+`asterisk>` ```module load func_redis.so``` 
 
 
 ### Using func_redis from the Dialplan
