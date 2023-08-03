@@ -48,16 +48,18 @@ but the performance is low compared to a asterisk module and the integration is 
 
 ##### yum
 ```yum install cmake asterisk-devel hiredis-devel  ```
-        
+
 ## Instalation
 1. Install the dependencies
-2. ```mkdir build```
-3. ```cd build```
-4. ```cmake -DCMAKE_BUILD_TYPE=Release ..```
-5. ```make```
-6. ```make install```
-7. ```make samples```
-8. ```make doc```
+2. ```git clone https://github.com/m-nik/func_redis.git```
+3. ```cd func_redis```
+4. ```mkdir build```
+5. ```cd build```
+6. ```cmake -DCMAKE_BUILD_TYPE=Release ..```
+7. ```make```
+8. ```make install```
+9. ```make doc```
+10. ```#make samples```
 
 
 ## Uninstall 
