@@ -27,13 +27,16 @@
 	<depend>hiredis</depend>
  ***/
 
+#ifndef AST_MODULE
+#define AST_MODULE "func_redis"
 //https://community.asterisk.org/t/externally-compiled-modules-must-declare-ast-module-self-sym/87121/4
 #define AST_MODULE_SELF_SYM __internal_my_module_self
+#endif
 
 
 #include <asterisk.h>
 
-// following line required bu asterisk 13
+// following line required by asterisk 13
 //ASTERISK_FILE_VERSION("func_redis.c", "$Revision: 6 $")
 
 #include <asterisk/module.h>
@@ -44,9 +47,7 @@
 #include <asterisk/cli.h>
 #include <asterisk/config.h>
 
-#ifndef AST_MODULE
-#define AST_MODULE "func_redis"
-#endif
+
 
 #include <hiredis/hiredis.h>
 #include <errno.h>
